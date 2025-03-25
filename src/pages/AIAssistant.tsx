@@ -3,6 +3,7 @@ import React from 'react';
 import { ArrowLeft, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AIChat from '../components/AIChat';
+import ThemeToggle from '../components/ThemeToggle';
 
 const AIAssistant: React.FC = () => {
   return (
@@ -14,9 +15,12 @@ const AIAssistant: React.FC = () => {
               <ArrowLeft size={16} />
               <span>Back to Home</span>
             </Link>
-            <div className="flex items-center gap-2">
-              <Brain className="text-primary" size={24} />
-              <h1 className="text-xl font-bold">AI Assistant</h1>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <div className="flex items-center gap-2">
+                <Brain className="text-primary" size={24} />
+                <h1 className="text-xl font-bold">AI Assistant</h1>
+              </div>
             </div>
           </div>
         </div>

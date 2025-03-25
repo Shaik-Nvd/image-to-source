@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Github } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const Header: React.FC = () => {
   return (
@@ -38,6 +39,7 @@ const Header: React.FC = () => {
             <Github size={16} className="mr-1" />
             <span>GitHub</span>
           </a>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
