@@ -5,6 +5,7 @@ import Hero from '../components/Hero';
 import ImageUploader from '../components/ImageUploader';
 import ScreenshotProcessor from '../components/ScreenshotProcessor';
 import Footer from '../components/Footer';
+import HelpSection from '../components/HelpSection';
 import { Code, Eye, Zap } from 'lucide-react';
 
 const Index: React.FC = () => {
@@ -108,6 +109,7 @@ const Index: React.FC = () => {
         <ScreenshotProcessor imageUrl={uploadedImage} />
       </main>
       
+      <HelpSection />
       <Footer />
     </div>
   );

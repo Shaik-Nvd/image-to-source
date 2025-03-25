@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
-import { Image, Upload, X } from 'lucide-react';
-import { fileToDataUrl, isImageFile } from '../utils/imageHelpers';
+import { Image, Upload, X, AlertCircle } from 'lucide-react';
+import { fileToDataUrl, isImageFile, validateImageQuality } from '../utils/imageHelpers';
 import { toast } from 'sonner';
 
 interface ImageUploaderProps {
@@ -12,6 +12,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [imageWarning, setImageWarning] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -42,6 +43,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded }) => {
   
   const handleFiles = useCallback(async (files: FileList) => {
     const file = files[0];
+    setImageWarning(null);
     
     if (!isImageFile(file)) {
       toast.error('Please upload an image file');
@@ -51,6 +53,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded }) => {
     try {
       setIsUploading(true);
       const dataUrl = await fileToDataUrl(file);
+      
+      // Validate image quality
+      const qualityCheck = await validateImageQuality(dataUrl);
+      
+      if (!qualityCheck.valid) {
+        setImageWarning(qualityCheck.message);
+        toast.warning(qualityCheck.message);
+      }
+      
       setPreview(dataUrl);
       onImageUploaded(dataUrl);
     } catch (error) {
@@ -63,6 +74,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded }) => {
   
   const clearImage = useCallback(() => {
     setPreview(null);
+    setImageWarning(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -118,6 +130,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUploaded }) => {
               >
                 <X size={16} />
               </button>
+              
+              {imageWarning && (
+                <div className="absolute bottom-0 left-0 right-0 bg-amber-500/90 text-white p-3 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-sm">
+                    <AlertCircle size={16} />
+                    <p>{imageWarning}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
