@@ -29,7 +29,7 @@ const AIAssistant: React.FC = () => {
       </main>
       
       <footer className="mt-8 text-center text-sm text-muted-foreground">
-        <p>Powered by Perplexity AI</p>
+        <p>Powered by Built-in AI</p>
       </footer>
     </div>
   );

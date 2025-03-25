@@ -9,19 +9,80 @@ interface Message {
   timestamp: Date;
 }
 
+// Common questions and responses for the mock AI
+const commonResponses: Record<string, string> = {
+  "hello": "Hello! How can I assist you today?",
+  "hi": "Hi there! How can I help you?",
+  "how are you": "I'm just a program, but I'm functioning well! How can I assist you?",
+  "what is your name": "I'm an AI assistant built into this application. You can call me AI Assistant.",
+  "what can you do": "I can answer questions, provide information, and help with various tasks. Feel free to ask me anything!",
+  "thank you": "You're welcome! Is there anything else I can help you with?",
+  "thanks": "You're welcome! Let me know if you need anything else.",
+  "bye": "Goodbye! Feel free to chat again whenever you need assistance.",
+  "help": "I'm here to help! You can ask me questions, request information, or just chat. What would you like to know?",
+};
+
+// Generate a response based on the user's input
+const generateMockResponse = (input: string): string => {
+  const lowerInput = input.toLowerCase();
+  
+  // Check for common greetings and questions
+  for (const [key, value] of Object.entries(commonResponses)) {
+    if (lowerInput.includes(key)) {
+      return value;
+    }
+  }
+
+  // Check for specific question patterns
+  if (lowerInput.includes("weather")) {
+    return "I'm sorry, I don't have access to real-time weather data. You would need to check a weather service for that information.";
+  }
+  
+  if (lowerInput.includes("time") && (lowerInput.includes("what") || lowerInput.includes("current"))) {
+    return `Based on your device, the current time is ${new Date().toLocaleTimeString()}.`;
+  }
+  
+  if (lowerInput.includes("date") && (lowerInput.includes("what") || lowerInput.includes("current"))) {
+    return `Today's date is ${new Date().toLocaleDateString()}.`;
+  }
+  
+  if (lowerInput.includes("who are you") || lowerInput.includes("what are you")) {
+    return "I'm an AI assistant integrated into this application. I can answer questions and provide information based on my programming.";
+  }
+
+  // Generate a generic response for questions
+  if (lowerInput.includes("?")) {
+    const responses = [
+      "That's an interesting question. While I don't have access to real-time data, I can tell you that this would typically involve considering various factors.",
+      "Great question! This is something that depends on context and specific details.",
+      "I understand you're asking about this topic. While I have limited knowledge, I can say that this is a complex subject with multiple perspectives.",
+      "That's something many people wonder about. The answer can vary depending on specific circumstances and the latest information available.",
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Default responses for other inputs
+  const defaultResponses = [
+    "That's interesting! I'd like to know more about what you're thinking.",
+    "I understand what you're saying. Could you provide more details or ask a specific question?",
+    "I appreciate your input. Is there something specific you'd like to know more about?",
+    "Thanks for sharing that. How can I assist you further with this topic?",
+    "I see what you mean. Would you like me to explain anything specific about this subject?",
+  ];
+  
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+};
+
 const AIChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'system',
-      content: 'Welcome! I am an AI assistant powered by Perplexity AI. How can I help you today?',
+      content: 'Welcome! I am an AI assistant. How can I help you today?',
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(() => {
-    return localStorage.getItem('perplexity_api_key') || '';
-  });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -30,22 +91,10 @@ const AIChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Save API key to localStorage when it changes
-  useEffect(() => {
-    if (apiKey) {
-      localStorage.setItem('perplexity_api_key', apiKey);
-    }
-  }, [apiKey]);
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!input.trim()) return;
-    
-    if (!apiKey) {
-      toast.error('Please enter your Perplexity API key first');
-      return;
-    }
     
     const userMessage: Message = {
       role: 'user',
@@ -58,59 +107,29 @@ const AIChat: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-sonar-large-128k-online',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a highly knowledgeable AI assistant with powerful capabilities. Answer questions accurately, concisely and helpfully.'
-            },
-            ...messages.filter(m => m.role !== 'system').map(m => ({
-              role: m.role,
-              content: m.content
-            })),
-            {
-              role: 'user',
-              content: input
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 4000,
-          search_domain_filter: ['perplexity.ai'],
-          search_recency_filter: 'month',
-          frequency_penalty: 1,
-        }),
-      });
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      // Generate a mock response
+      const responseText = generateMockResponse(input);
       
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.choices[0].message.content,
+        content: responseText,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to get a response. Please check your API key and try again.');
+      console.error('Error generating response:', error);
+      toast.error('Failed to generate a response. Please try again.');
       
       // Add an error message
       setMessages(prev => [
         ...prev,
         {
           role: 'system',
-          content: 'Sorry, I encountered an error. Please check your API key or try again later.',
+          content: 'Sorry, I encountered an error. Please try again later.',
           timestamp: new Date()
         }
       ]);
@@ -121,42 +140,6 @@ const AIChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-background rounded-lg border border-border">
-      {!apiKey && (
-        <div className="p-4 bg-amber-50 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
-          <h3 className="font-medium text-amber-800 dark:text-amber-200">API Key Required</h3>
-          <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-            You need a Perplexity AI API key to use this feature. Get one at{' '}
-            <a 
-              href="https://www.perplexity.ai/settings/api" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="underline"
-            >
-              perplexity.ai
-            </a>
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              placeholder="Enter your Perplexity API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded-md text-sm"
-            />
-            <button
-              onClick={() => {
-                if (apiKey) {
-                  toast.success('API key saved');
-                }
-              }}
-              className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
-      
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div 
